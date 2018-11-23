@@ -25,11 +25,11 @@ class GameState(object):
 
         # Assign Roles
         num_fascists = 0
-        if self.num_players == (5 or 6):
+        if self.num_players in [5, 6]:
             num_fascists = 1
-        if self.num_players == (7 or 8):
+        if self.num_players in [7, 8]:
             num_fascists = 2
-        if self.num_players == (9 or 10):
+        if self.num_players in [9, 10]:
             num_fascists = 3
         num_liberals = self.num_players - num_fascists - 1
         player_roles = [SH_Roles.Liberal()] * num_liberals + \

@@ -53,4 +53,36 @@ class Display(object):
         result -= 1
         return result
 
+    def veto_or_discard(self, cards):
+        for i, card in enumerate(cards):
+            print("{}. {}".format(i+1, card), end=" ")
+        result = 0
+        while result not in range(1, len(cards) + 2):
+            try:
+                result = int(input("\nSelect one to remove, or enter 3 to veto: "))
+            except ValueError:
+                result = 0
+        if result == 3:
+            veto = input("Do you accept this veto?[y/n]")
+            if veto.lower() == "y":
+                return "Veto"
+            else:
+                # Repeat request if veto is declined
+                for i, card in enumerate(cards):
+                    print("{}. {}".format(i+1, card), end=" ")
+                result = 0
+                while result not in range(1, len(cards) + 1):
+                    try:
+                        result = int(input("\nSelect one to remove: "))
+                    except ValueError:
+                        result = 0
+        result -= 1
+        return result
+
+    def player_roles(self, players):
+        for player in players:
+            print("{} is {}".format(player, player.role.party))
+            if player.is_Hitler():
+                print(" and Hitler")
+
 

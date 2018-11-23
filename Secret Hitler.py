@@ -1,8 +1,4 @@
 import GameState
-from Player import Player
-from Gameboard import Board
-import SH_Roles
-import random
 from Display import Display
 
 
@@ -23,6 +19,8 @@ class SecretHitler(object):
         self.state = GameState.GameState(self.num_players, self.player_names)
         self.state.setup()
 
+        # self.display.player_roles(self.state.players)
+
         while not self.test_for_victory():
             self.next_president()
             self.choose_chanc()
@@ -31,14 +29,21 @@ class SecretHitler(object):
             while not self.vote():
                 num_failed_votes += 1
                 if num_failed_votes == 3:
+                    num_failed_votes = 0
                     print("You have failed to elect a party, now the top card is played")
                     self.state.board.play_policy(self.state.deck.get_top_card())
-                    num_failed_votes = 0
-                    break
+                    self.state.deck.reshuffle()
+                    print("Liberal Board:")
+                    self.state.board.display_lib_board()
+                    print("Fascist Board")
+                    self.state.board.display_fascist_board()
+                    if self.test_for_victory():
+                        print(self.test_for_victory())
+                        return
                 self.next_president()
                 self.choose_chanc()
 
-            if self.test_for_victory():
+            if self.test_Hitler_elected():
                 break
 
             action = self.take_turn()
@@ -50,7 +55,10 @@ class SecretHitler(object):
 
             self.check_action(action)
 
-        print(self.test_for_victory())
+        if self.test_for_victory():
+            print(self.test_for_victory())
+        if self.test_Hitler_elected:
+            print(self.test_Hitler_elected())
 
     def choose_chanc(self):
         # Choose chancellor
@@ -111,12 +119,25 @@ class SecretHitler(object):
 
         print("{} ,you have the following cards: ".format(self.state.current_chanc.name))
         input("Press ENTER to continue...")
-        discard_index = self.display.choose_discard(inhand)
-        self.state.deck.discard_card(inhand.pop(discard_index))
 
-        self.state.deck.reshuffle()
+        if len(self.state.board.fascist_board) == 5:
+            discard_index = self.display.veto_or_discard(inhand)
+            if discard_index == "Veto":
+                for card in inhand:
+                    self.state.deck.discard_card(card)
+                self.state.deck.reshuffle()
+            else:
+                self.state.deck.discard_card(inhand.pop(discard_index))
+                self.state.deck.reshuffle()
+                return self.state.board.play_policy(inhand[0])
 
-        return self.state.board.play_policy(inhand[0])
+        else:
+            discard_index = self.display.choose_discard(inhand)
+            self.state.deck.discard_card(inhand.pop(discard_index))
+
+            self.state.deck.reshuffle()
+
+            return self.state.board.play_policy(inhand[0])
 
     def check_action(self, action):
 
@@ -167,13 +188,10 @@ class SecretHitler(object):
         index = self.display.get_choice(valid_choices)
         valid_choices[index].killed()
         print("{} is now dead".format(valid_choices[index]))
+        self.state.alive_players -= 1
         return valid_choices[index].is_Hitler()
 
     def test_for_victory(self):
-        # If Hitler elected chancellor
-        if len(self.state.board.fascist_board) >= 3 and self.state.current_chanc == self.state.hitler:
-            return "Hitler has been elected chancellor, Fascists win!"
-
         # If Fascist board fills up
         if len(self.state.board.fascist_board) == 6:
             return "Fascists win by passing policy!"
@@ -189,6 +207,11 @@ class SecretHitler(object):
 
         return None
 
+    def test_Hitler_elected(self):
+        # If Hitler elected chancellor
+        if len(self.state.board.fascist_board) >= 3 and self.state.current_chanc == self.state.hitler:
+            return "Hitler has been elected chancellor, Fascists win!"
+        return None
 
 
 
